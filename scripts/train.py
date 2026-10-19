@@ -19,9 +19,10 @@ from dataclasses import asdict, dataclass
 import numpy as np
 import torch
 
-# TODO: import your code, e.g.
-# from lm.model import TransformerLM, AdamW, cross_entropy, clip_grad_norm_, lr_cosine, get_batch, \
-#     save_checkpoint, load_checkpoint, count_params, count_flops
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # so "lm" can be imported
+from lm.model import TransformerLM, AdamW, cross_entropy, clip_grad_norm_, lr_cosine, get_batch, \
+    save_checkpoint, load_checkpoint, count_params, count_flops
 
 PEAK_FLOPS = {"T4": 65e12, "L4": 121e12, "A100": 312e12, "H100": 989e12}   # bf16/fp16 dense peak
 
@@ -99,10 +100,8 @@ def main() -> None:
     train = np.memmap(args.data, dtype=np.uint16, mode="r")
     val = np.memmap(args.val, dtype=np.uint16, mode="r")
 
-    # TODO: build the model and the optimizer with your classes
-    # model = TransformerLM(cfg.vocab_size, cfg.context_length, cfg.d_model, cfg.num_layers, cfg.num_heads, cfg.d_ff, cfg.rope_theta).to(device)
-    # opt = AdamW(model.parameters(), lr=cfg.lr_max, betas=(cfg.beta1, cfg.beta2), weight_decay=cfg.weight_decay)
-    raise NotImplementedError("build model and optimizer, then delete this line")
+    model = TransformerLM(cfg.vocab_size, cfg.context_length, cfg.d_model, cfg.num_layers, cfg.num_heads, cfg.d_ff, cfg.rope_theta).to(device)
+    opt = AdamW(model.parameters(), lr=cfg.lr_max, betas=(cfg.beta1, cfg.beta2), weight_decay=cfg.weight_decay)
 
     n_params = count_params(cfg.vocab_size, cfg.context_length, cfg.d_model, cfg.num_layers, cfg.num_heads, cfg.d_ff)  # noqa: F821
     fwd_flops, train_flops = count_flops(cfg.vocab_size, cfg.context_length, cfg.d_model, cfg.num_layers, cfg.num_heads, cfg.d_ff, cfg.context_length)  # noqa: F821
