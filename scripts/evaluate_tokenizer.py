@@ -8,9 +8,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lm.tokenizer import Tokenizer
 
 
-def read_text(path):
+def read_text(path, max_mb=None):
     with open(path, "rb") as f:
-        data = f.read()
+        if max_mb:
+            data = f.read(int(max_mb * 1e6))
+            data = data[: data.rfind(b"\n") + 1]
+        else:
+            data = f.read()
     return data.decode("utf-8")
 
 
@@ -28,6 +32,7 @@ def main():
     ap.add_argument("--merges", default="tok/merges.pkl")
     ap.add_argument("--valid", required=True)
     ap.add_argument("--owt", required=True)
+    ap.add_argument("--owt-mb", type=float, default=100)
     args = ap.parse_args()
 
     tokenizer = Tokenizer.from_files(args.vocab, args.merges, ["<|endoftext|>"])
@@ -38,7 +43,7 @@ def main():
     print(f"  time to tokenise: {seconds:.1f} s")
     print(f"  throughput: {n_bytes / 1e6 / seconds:.3f} MB/s")
 
-    n_bytes, n_tokens, seconds = evaluate(tokenizer, read_text(args.owt))
+    n_bytes, n_tokens, seconds = evaluate(tokenizer, read_text(args.owt, args.owt_mb))
     print(f"OWT sample: {n_bytes / 1e6:.1f} MB, {n_tokens} tokens")
     print(f"  bytes per token: {n_bytes / n_tokens:.3f}")
     print(f"  time to tokenise: {seconds:.1f} s")
